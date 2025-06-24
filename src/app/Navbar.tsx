@@ -1,22 +1,7 @@
-import { getWixClient } from "@/lib/wix-client.base";
 import Image from "next/image";
 import Link from "next/link";
 
-async function getCart() {
-  const wixClient = getWixClient();
-
-  try {
-    return await wixClient.currentCart.getCurrentCart();
-  } catch (error) {
-    if (
-      (error as any).details.applicationError.code === "OWNED_CART_NOT_FOUND"
-    ) {
-      return null;
-    } else {
-      throw error;
-    }
-  }
-}
+import { getCart } from "@/wix-api/cart";
 
 export async function Navbar() {
   const cart = await getCart();
