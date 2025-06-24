@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { media as wixMedia } from "@wix/sdk";
 import { products } from "@wix/stores";
 import { WixImage } from "./WixImage";
 import Badge from "./ui/badge";
@@ -13,10 +12,6 @@ interface ProductProps {
 
 export const Product = ({ product }: ProductProps) => {
   const mainImage = product.media?.mainMedia?.image;
-
-  const resizedImageUrl = mainImage?.url
-    ? wixMedia.getScaledToFillImageUrl(mainImage.url, 700, 700, {})
-    : null;
 
   return (
     <Link className="h-full bg-card" href={`/products/${product.slug}`}>
