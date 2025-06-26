@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { delay } from "@/lib/utils";
 import { Suspense } from "react";
-import { getWixClient } from "@/lib/wix-client.base";
+
 import { Product } from "@/components/Product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCollectionBySlug } from "@/wix-api/collections";
