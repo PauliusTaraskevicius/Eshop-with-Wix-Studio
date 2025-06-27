@@ -17,6 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { AddToCartButton } from "@/components/AddToCartButton";
 
 interface ProductDetailsProps {
   product: products.Product;
@@ -81,14 +82,7 @@ export const ProductDetails = ({ product }: ProductDetailsProps) => {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
         />
-        <div>
-          Selected options
-          {JSON.stringify(selectedOptions)}
-        </div>
-        <div>
-          Variant:
-          {JSON.stringify(selectedVariant?.choices)}
-        </div>
+
         <div className="space-y-1.5">
           <Label htmlFor="quantity">Quantity</Label>
           <div className="flex items-center gap-2.5">
@@ -108,6 +102,15 @@ export const ProductDetails = ({ product }: ProductDetailsProps) => {
               )}
           </div>
         </div>
+        {inStock ? (
+          <AddToCartButton
+            product={product}
+            selectedOptions={selectedOptions}
+            quantity={quantity}
+          />
+        ) : (
+          "Out of stock"
+        )}
         {!!product.additionalInfoSections?.length && (
           <div className="space-y-1.5 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
