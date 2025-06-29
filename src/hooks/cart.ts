@@ -1,5 +1,13 @@
-import { addToCart, AddToCartValues, getCart } from "@/wix-api/cart";
 import {
+  addToCart,
+  AddToCartValues,
+  getCart,
+  removeCartItem,
+  updateCartItemQuantity,
+  updateCartItemQuantityValues,
+} from "@/wix-api/cart";
+import {
+  MutationKey,
   QueryKey,
   useMutation,
   useQuery,
@@ -34,6 +42,78 @@ export function useAddItemToCart() {
     onError(error) {
       console.error(error);
       toast.error("Failed to add item to cart. Please try again.");
+    },
+  });
+}
+
+export function useUpdateCartItemQuantity() {
+  const queryClient = useQueryClient();
+
+  const mutationKey: MutationKey = ["updateCartItemQuantity"];
+
+  return useMutation({
+    mutationKey,
+    mutationFn: (values: updateCartItemQuantityValues) =>
+      updateCartItemQuantity(wixBrowserClient, values),
+    onMutate: async ({ productId, newQuantity }) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousState =
+        queryClient.getQueryData<currentCart.Cart>(queryKey);
+
+      queryClient.setQueryData<currentCart.Cart>(queryKey, (oldData) => ({
+        ...oldData,
+        lineItems: oldData?.lineItems?.map((lineItem) =>
+          lineItem._id === productId
+            ? { ...lineItem, quantity: newQuantity }
+            : lineItem
+        ),
+      }));
+
+      return { previousState };
+    },
+    onError(error, variables, context) {
+      queryClient.setQueryData(queryKey, context?.previousState);
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    },
+    onSettled() {
+      if (queryClient.isMutating({ mutationKey }) === 1) {
+        queryClient.invalidateQueries({ queryKey });
+      }
+    },
+  });
+}
+
+export function useRemoveCartItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (productId: string) =>
+      removeCartItem(wixBrowserClient, productId),
+
+    onMutate: async (productId) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousState =
+        queryClient.getQueryData<currentCart.Cart>(queryKey);
+
+      queryClient.setQueryData<currentCart.Cart>(queryKey, (oldData) => ({
+        ...oldData,
+        lineItems: oldData?.lineItems?.filter(
+          (lineItem) => lineItem._id !== productId
+        ),
+      }));
+
+      return { previousState };
+    },
+    onError(error, variables, context) {
+      queryClient.setQueryData(queryKey, context?.previousState);
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    },
+    onSettled() {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
