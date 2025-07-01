@@ -1,25 +1,32 @@
 "use client";
 
+// import CheckoutButton from "@/components/CheckoutButton";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+
 import {
   useCart,
   useRemoveCartItem,
   useUpdateCartItemQuantity,
 } from "@/hooks/cart";
 import { currentCart } from "@wix/ecom";
-import { useState } from "react";
-import { Button } from "./ui/button";
 import { Loader2, ShoppingCartIcon, X } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import Link from "next/link";
+import { useState } from "react";
 import { WixImage } from "./WixImage";
 
 interface ShoppingCartButtonProps {
   initialData: currentCart.Cart | null;
 }
 
-export const ShoppingCartButton = ({
+export default function ShoppingCartButton({
   initialData,
-}: ShoppingCartButtonProps) => {
+}: ShoppingCartButtonProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const cartQuery = useCart(initialData);
@@ -35,13 +42,13 @@ export const ShoppingCartButton = ({
       <div className="relative">
         <Button variant="ghost" size="icon" onClick={() => setSheetOpen(true)}>
           <ShoppingCartIcon />
-          <span className="absolute top-0 right-0 size-5 bg-primary text-xs text-primary-foreground flex items-center justify-center rounded-full">
-            {totalQuantity < 10 ? totalQuantity : "9+"}{" "}
+          <span className="absolute right-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+            {totalQuantity < 10 ? totalQuantity : "9+"}
           </span>
         </Button>
       </div>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="flex flex-col sm:max-w-lg p-4">
+        <SheetContent className="flex flex-col sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>
               Your cart{" "}
@@ -84,24 +91,25 @@ export const ShoppingCartButton = ({
           <hr />
           <div className="flex items-center justify-between gap-5">
             <div className="space-y-0.5">
-              <p className="text-sm">Subtotal amount</p>
+              <p className="text-sm">Subtotal amount:</p>
               <p className="font-bold">
                 {/* @ts-expect-error */}
-                {cartQuery.data.subtotal.formattedConvertedAmount}
+                {cartQuery.data?.subtotal?.formattedConvertedAmount}
               </p>
               <p className="text-xs text-muted-foreground">
                 Shipping and taxes calculated at checkout
               </p>
             </div>
-            <Button size="lg" disabled={!totalQuantity || cartQuery.isFetching}>
-              Checkout
-            </Button>
+            {/* <CheckoutButton
+              size="lg"
+              disabled={!totalQuantity || cartQuery.isFetching}
+            /> */}
           </div>
         </SheetContent>
       </Sheet>
     </>
   );
-};
+}
 
 interface ShoppingCartItemProps {
   item: currentCart.LineItem;
@@ -113,6 +121,7 @@ function ShoppingCartItem({
   onProductLinkClicked,
 }: ShoppingCartItemProps) {
   const updateQuantityMutation = useUpdateCartItemQuantity();
+
   const removeItemMutation = useRemoveCartItem();
 
   const productId = item._id;
@@ -139,7 +148,7 @@ function ShoppingCartItem({
           />
         </Link>
         <button
-          className="absolute -right-1 -top-1 border border-background rounded-full p-0.5 pt-1"
+          className="absolute -right-1 -top-1 rounded-full border bg-background p-0.5"
           onClick={() => removeItemMutation.mutate(productId)}
         >
           <X className="size-3" />
@@ -167,7 +176,7 @@ function ShoppingCartItem({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 ">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
@@ -189,7 +198,7 @@ function ShoppingCartItem({
             onClick={() =>
               updateQuantityMutation.mutate({
                 productId,
-                newQuantity: !item.quantity ? 0 : item.quantity + 1,
+                newQuantity: !item.quantity ? 1 : item.quantity + 1,
               })
             }
           >
