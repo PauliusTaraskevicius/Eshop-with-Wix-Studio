@@ -1,7 +1,6 @@
 import PaginationBar from "@/components/PaginationBar";
 import { Product } from "@/components/Product";
 import { Skeleton } from "@/components/ui/skeleton";
-import { delay } from "@/lib/utils";
 import { getWixServerClient } from "@/lib/wix-client.server";
 import { getCollectionBySlug } from "@/wix-api/collections";
 import { queryProducts } from "@/wix-api/products";
@@ -32,10 +31,10 @@ export async function generateMetadata({
   };
 }
 
-const Page = async ({
+export default async function Page({
   params: { slug },
   searchParams: { page = "1" },
-}: PageProps) => {
+}: PageProps) {
   const collection = await getCollectionBySlug(getWixServerClient(), slug);
 
   if (!collection?._id) notFound();
@@ -43,33 +42,42 @@ const Page = async ({
   return (
     <div className="space-y-5">
       <h2 className="text-2xl font-bold">Products</h2>
-      <Suspense fallback={<LoadingSkeleton />}>
-        <Products collectionId={collection._id} />
+      <Suspense fallback={<LoadingSkeleton />} key={page}>
+        <Products collectionId={collection._id} page={parseInt(page)} />
       </Suspense>
     </div>
   );
-};
-
-export default Page;
+}
 
 interface ProductsProps {
   collectionId: string;
+  page: number;
 }
 
-async function Products({ collectionId }: ProductsProps) {
-  await delay(200);
+async function Products({ collectionId, page }: ProductsProps) {
+  const pageSize = 8;
 
   const collectionProducts = await queryProducts(getWixServerClient(), {
     collectionsIds: collectionId,
+    limit: pageSize,
+    skip: (page - 1) * pageSize,
   });
 
   if (!collectionProducts.length) notFound();
 
+  if (page > (collectionProducts.totalPages || 1)) notFound();
+
   return (
-    <div className="flex flex-col sm:grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
-      {collectionProducts.items.map((product) => (
-        <Product key={product._id} product={product} />
-      ))}
+    <div className="space-y-10">
+      <div className="flex grid-cols-2 flex-col gap-5 sm:grid md:grid-cols-3 lg:grid-cols-4">
+        {collectionProducts.items.map((product) => (
+          <Product key={product._id} product={product} />
+        ))}
+      </div>
+      <PaginationBar
+        currentPage={page}
+        totalPages={collectionProducts.totalPages || 1}
+      />
     </div>
   );
 }
