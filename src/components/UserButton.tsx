@@ -8,11 +8,24 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { LogInIcon, LogOutIcon, UserIcon } from "lucide-react";
+import {
+  Check,
+  LogInIcon,
+  LogOutIcon,
+  Monitor,
+  Moon,
+  Sun,
+  UserIcon,
+} from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 
 interface UserButtonProps {
   loggedInMember: members.Member | null;
@@ -21,6 +34,7 @@ interface UserButtonProps {
 
 export const UserButton = ({ loggedInMember, classname }: UserButtonProps) => {
   const { login, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -46,6 +60,32 @@ export const UserButton = ({ loggedInMember, classname }: UserButtonProps) => {
             <DropdownMenuSeparator />
           </>
         )}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Monitor className="size-4 mr-2" />
+            Theme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => setTheme("system")}>
+                <Monitor className="size-4 mr-2" />
+                System default
+                {theme === "system" && <Check className="size-4 mr-2" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                <Sun className="size-4 mr-2" />
+                Light
+                {theme === "light" && <Check className="size-4 mr-2" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <Moon className="size-4 mr-2" />
+                Dark
+                {theme === "dark" && <Check className="size-4 mr-2" />}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+        <DropdownMenuSeparator />
         {loggedInMember ? (
           <DropdownMenuItem onClick={() => logout()}>
             <LogOutIcon className="size-4 mr-2" />
