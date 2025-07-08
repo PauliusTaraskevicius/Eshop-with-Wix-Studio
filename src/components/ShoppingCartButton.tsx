@@ -1,6 +1,6 @@
 "use client";
 
-// import CheckoutButton from "@/components/CheckoutButton";
+import CheckoutButton from "@/components/CheckoutButton";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -100,10 +100,10 @@ export default function ShoppingCartButton({
                 Shipping and taxes calculated at checkout
               </p>
             </div>
-            {/* <CheckoutButton
+            <CheckoutButton
               size="lg"
               disabled={!totalQuantity || cartQuery.isFetching}
-            /> */}
+            />
           </div>
         </SheetContent>
       </Sheet>
