@@ -38,8 +38,8 @@ export const UserButton = ({ loggedInMember, classname }: UserButtonProps) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button onClick={() => login()}>
+      <DropdownMenuTrigger asChild>
+        <Button onClick={() => login()} variant='ghost' className={classname}>
           <UserIcon />
         </Button>
       </DropdownMenuTrigger>
