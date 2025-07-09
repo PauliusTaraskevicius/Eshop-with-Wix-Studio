@@ -1,23 +1,22 @@
-import { getProductBySlug, getRelatedProducts } from "@/wix-api/products";
-import { notFound } from "next/navigation";
-import { ProductDetails } from "./ProductDetail";
-import { Metadata } from "next";
-import { getWixServerClient } from "@/lib/wix-client.server";
-import { Suspense } from "react";
-import { delay } from "@/lib/utils";
-import { Product } from "@/components/Product";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getLoggedInMember } from "@/wix-api/members";
+import {Product} from "@/components/Product";
 import CreateProductReviewButton from "@/components/reviews/CreateProductReviewButton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getWixServerClient } from "@/lib/wix-client.server";
+import { getLoggedInMember } from "@/wix-api/members";
+import { getProductBySlug, getRelatedProducts } from "@/wix-api/products";
+import { getProductReviews } from "@/wix-api/reviews";
 import { products } from "@wix/stores";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
 import ProductReviews, {
   ProductReviewsLoadingSkeleton,
 } from "./ProductReviews";
+import { ProductDetails } from "./ProductDetail";
 
 interface PageProps {
-  params: {
-    slug: string;
-  };
+  params: { slug: string };
 }
 
 export async function generateMetadata({
@@ -25,7 +24,7 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const product = await getProductBySlug(getWixServerClient(), slug);
 
-  if (!product?._id) notFound();
+  if (!product) notFound();
 
   const mainImage = product.media?.mainMedia?.image;
 
@@ -47,13 +46,13 @@ export async function generateMetadata({
   };
 }
 
-const Page = async ({ params: { slug } }: PageProps) => {
+export default async function Page({ params: { slug } }: PageProps) {
   const product = await getProductBySlug(getWixServerClient(), slug);
 
   if (!product?._id) notFound();
 
   return (
-    <main className="max-w-7xl mx-auto space-y-10 px-5 py-10">
+    <main className="mx-auto max-w-7xl space-y-10 px-5 py-10">
       <ProductDetails product={product} />
       <hr />
       <Suspense fallback={<RelatedProductsLoadingSkeleton />}>
@@ -68,28 +67,24 @@ const Page = async ({ params: { slug } }: PageProps) => {
       </div>
     </main>
   );
-};
-
-export default Page;
+}
 
 interface RelatedProductsProps {
   productId: string;
 }
 
 async function RelatedProducts({ productId }: RelatedProductsProps) {
-  await delay(2000);
-
   const relatedProducts = await getRelatedProducts(
     getWixServerClient(),
-    productId
+    productId,
   );
 
   if (!relatedProducts.length) return null;
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-bold">Related products</h2>
-      <div className="flex flex-col gap-5 sm:grid grid-cols-2 lg:grid-cols-4">
+      <h2 className="text-2xl font-bold">Related Products</h2>
+      <div className="flex grid-cols-2 flex-col gap-5 sm:grid lg:grid-cols-4">
         {relatedProducts.map((product) => (
           <Product key={product._id} product={product} />
         ))}
@@ -113,17 +108,27 @@ interface ProductReviewsSectionProps {
 }
 
 async function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
+  if (!product._id) return null;
+
   const wixClient = getWixServerClient();
 
   const loggedInMember = await getLoggedInMember(wixClient);
 
-  await delay(5000);
+  const existingReview = loggedInMember?.contactId
+    ? (
+        await getProductReviews(wixClient, {
+          productId: product._id,
+          contactId: loggedInMember.contactId,
+        })
+      ).items[0]
+    : null;
 
   return (
     <div className="space-y-5">
       <CreateProductReviewButton
         product={product}
         loggedInMember={loggedInMember}
+        hasExistingReview={!!existingReview}
       />
       <ProductReviews product={product} />
     </div>
