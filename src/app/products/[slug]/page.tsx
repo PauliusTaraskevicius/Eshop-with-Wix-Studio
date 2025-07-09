@@ -7,6 +7,12 @@ import { Suspense } from "react";
 import { delay } from "@/lib/utils";
 import { Product } from "@/components/Product";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getLoggedInMember } from "@/wix-api/members";
+import CreateProductReviewButton from "@/components/reviews/CreateProductReviewButton";
+import { products } from "@wix/stores";
+import ProductReviews, {
+  ProductReviewsLoadingSkeleton,
+} from "./ProductReviews";
 
 interface PageProps {
   params: {
@@ -53,6 +59,13 @@ const Page = async ({ params: { slug } }: PageProps) => {
       <Suspense fallback={<RelatedProductsLoadingSkeleton />}>
         <RelatedProducts productId={product._id} />
       </Suspense>
+      <hr />
+      <div className="space-y-5">
+        <h2 className="text-2xl font-bold">Buyer reviews</h2>
+        <Suspense fallback={<ProductReviewsLoadingSkeleton />}>
+          <ProductReviewsSection product={product} />
+        </Suspense>
+      </div>
     </main>
   );
 };
@@ -95,6 +108,24 @@ function RelatedProductsLoadingSkeleton() {
   );
 }
 
-// interface ProductReviewsSectionProps {
-//   product: products.Product;
-// }
+interface ProductReviewsSectionProps {
+  product: products.Product;
+}
+
+async function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
+  const wixClient = getWixServerClient();
+
+  const loggedInMember = await getLoggedInMember(wixClient);
+
+  await delay(5000);
+
+  return (
+    <div className="space-y-5">
+      <CreateProductReviewButton
+        product={product}
+        loggedInMember={loggedInMember}
+      />
+      <ProductReviews product={product} />
+    </div>
+  );
+}
